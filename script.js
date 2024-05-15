@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     magnifier.classList.add('magnifier');
     document.querySelector('.magnifier-container').appendChild(magnifier);
 
-    const sensitivity = 100; // Pixels from the bottom considered as the "hot zone"
+    // const sensitivity = 100; // Pixels from the bottom considered as the "hot zone"
     const scrollAmount = 10; // How much to scroll each frame when in the hot zone
 
     let lastMousePosition = { x: 0, y: 0 };
@@ -31,7 +31,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             updateMagnifier();
         }
-    });
+
+    }, { passive: false });
+
+    const sensitivity = 50; // Pixels from the edges that will trigger scrolling
+    const scrollSpeed = 10; // Speed of the scroll
 
     document.addEventListener('mousemove', function(e) {
         magnifier.style.left = e.pageX - (magnifier.offsetWidth / 2) + 'px';
@@ -43,11 +47,20 @@ document.addEventListener('DOMContentLoaded', function() {
         lastMousePosition.y = e.pageY;
         updateMagnifier();
 
+        // Scroll the image if the mouse is in the hot zone
+        const mouseY = e.clientY; // Vertical position within the viewport
         const windowHeight = window.innerHeight;
-        const y = e.pageY; // Vertical mouse position within the viewport
 
-        if (y > (windowHeight - sensitivity)) {
-            window.scrollBy(0, scrollAmount); // Scroll down
+        if (mouseY < sensitivity) {
+            // Scroll up
+            window.scrollBy(0, -scrollSpeed);
+        } else if (mouseY > windowHeight - sensitivity) {
+            // Scroll down
+            window.scrollBy(0, scrollSpeed);
+        }
+        else {
+            // Stop scrolling
+            window.scrollBy(0, 0);
         }
     });
 });
