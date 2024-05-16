@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     const image = document.getElementById('pinsImage');
-
+    const originalWindowHeight = document.documentElement.scrollHeight;
     const magnifier = document.createElement('div');
     magnifier.classList.add('magnifier');
     document.querySelector('.magnifier-container').appendChild(magnifier);
@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
         magnifier.style.backgroundSize = `${image.width * magnificationFactor}px ${image.height * magnificationFactor}px`;
         magnifier.style.backgroundPosition = `-${lastMousePosition.x * magnificationFactor - magnifier.offsetWidth / 2}px -${lastMousePosition.y * magnificationFactor - magnifier.offsetHeight / 2}px`;
     }
-
+    console.log('originalWindowHeight', originalWindowHeight);
     document.addEventListener('wheel', function(e) {
         if (e.ctrlKey || e.metaKey) { // Check for Ctrl (Windows/Linux) or Cmd (Mac)
             e.preventDefault(); // Prevent the default zoom behavior
@@ -47,20 +47,40 @@ document.addEventListener('DOMContentLoaded', function() {
         lastMousePosition.y = e.pageY;
         updateMagnifier();
 
-        // Scroll the image if the mouse is in the hot zone
-        const mouseY = e.clientY; // Vertical position within the viewport
-        const windowHeight = window.innerHeight;
-
-        if (mouseY < sensitivity) {
-            // Scroll up
-            window.scrollBy(0, -scrollSpeed);
-        } else if (mouseY > windowHeight - sensitivity) {
-            // Scroll down
-            window.scrollBy(0, scrollSpeed);
-        }
-        else {
-            // Stop scrolling
-            window.scrollBy(0, 0);
-        }
+        
     });
+
+
+    let lastTouchPosition = { x: 0, y: 0 };
+let isZooming = false;
+let initialPinchDistance = null;
+// let magnificationFactor = 2;
+
+document.addEventListener('touchmove', function(e) {
+    if (e.touches.length == 1 && !isZooming) {
+        const touch = e.touches[0];
+        lastMousePosition.x = touch.pageX;
+        lastMousePosition.y = touch.pageY;
+
+
+        magnifier.style.left = touch.pageX - (magnifier.offsetWidth / 2) + 'px';
+        magnifier.style.top = touch.pageY - (magnifier.offsetHeight / 2) + 'px';
+        updateMagnifier();
+        e.preventDefault();
+    }
+}, { passive: false });
+
+document.addEventListener('touchstart', function(e) {
+    if (e.touches.length == 2) {
+        isZooming = true;
+        initialPinchDistance = getDistanceBetweenTouches(e.touches);
+    }
+});
+
+document.addEventListener('touchend', function(e) {
+    if (e.touches.length < 2) {
+        isZooming = false;
+        initialPinchDistance = null;
+    }
+});
 });
